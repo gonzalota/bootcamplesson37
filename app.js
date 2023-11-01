@@ -4,12 +4,13 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
-const encrypt = require("mongoose-encryption");
+//const encrypt = require("mongoose-encryption");
 const { log } = require('console');
+const md5 = require("md5");
 
 const app = express();
 
-console.log(process.env.API_KEY);
+console.log(md5("123456"));
 
 app.use(express.static("public"));
 app.set('view engine', 'ejs');
@@ -24,7 +25,8 @@ const userSchema = new mongoose.Schema({
 
 // Esto encripta en la base de datos. Ver archivo .env leer mongoose-encryption (documentación) //
 // const secret = "Thisisourlittlesecret.";
-userSchema.plugin(encrypt, { secret: process.env.SECRET, encryptedFields: ["password"] });
+// Al empezar a hacer el hashing lo has quitado.
+//userSchema.plugin(encrypt, { secret: process.env.SECRET, encryptedFields: ["password"] });
 
 const User = new mongoose.model("User", userSchema)
 
@@ -40,11 +42,12 @@ app.get("/register", (req, res) => {
     res.render("register");
 });
 
+// md5 es para el HASHING //
 app.post("/register", (req, res) => {
 
     const newUser = new User({
         email: req.body.username,
-        password: req.body.password
+        password: md5(req.body.password)
     });
 
     newUser.save()
@@ -59,7 +62,7 @@ app.post("/register", (req, res) => {
 
 app.post("/login", (req, res) => {
     const username = req.body.username;
-    const password = req.body.password;
+    const password = md5(req.body.password);
 
     User.findOne({email: username})
         .then((foundUser) => {
